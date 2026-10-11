@@ -12,7 +12,6 @@ jobs:
         with:
           kernel-url: https://github.com/amirfoysal720-dotcom/A15
           kernel-branch: main
-          kernel-dir: kernel-4.9
           config: oppo6765_defconfig
           arch: arm64
           aarch64-compiler: gcc
