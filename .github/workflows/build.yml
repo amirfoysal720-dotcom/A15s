@@ -1,0 +1,19 @@
+name: Build KernelSU Next
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build Kernel
+        uses: dabao1955/kernel_build_action@main
+        with:
+          kernel_url: https://github.com/amirfoysal720-dotcom/A15
+          kernel_branch: main
+          config: oppo6765_defconfig
+          arch: arm64
+          aarch64_compiler: gcc
+          ksu: true
+          ksu_version: main
