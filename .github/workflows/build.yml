@@ -1,55 +1,45 @@
-name: Build Oppo A15/A15s Kernel with KernelSU Next
+name: Docker KernelSU Next Build
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container:
+      image: zyc3688/kernel_build:latest
 
     steps:
-    - name: Checkout Kernel Source
+    - name: Checkout Source
       uses: actions/checkout@v4
 
-    - name: Set up Build Environment
+    - name: Inject KernelSU Next & Build
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential bc bison flex libssl-dev libncurses5-dev libncursesw5-dev libglib2.0-dev libpixman-1-dev python3 git wget zip unzip gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-
-    - name: Inject KernelSU Next
-      run: |
+        # KernelSU Next Setup
         curl -LSs "https://raw.githubusercontent.com/rifs28/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+        
+        # Enable Configs
+        DEFCONFIG="kernel-4.9/arch/arm64/configs/oppo6765_defconfig"
+        echo "CONFIG_KPROBES=y" >> $DEFCONFIG
+        echo "CONFIG_HAVE_KPROBES=y" >> $DEFCONFIG
+        echo "CONFIG_KPROBE_EVENTS=y" >> $DEFCONFIG
+        echo "CONFIG_OVERLAY_FS=y" >> $DEFCONFIG
+        echo "CONFIG_NETFILTER=y" >> $DEFCONFIG
 
-    - name: Enable Required Configs
-      run: |
-        DEFCONFIG_FILE="kernel-4.9/arch/arm64/configs/oppo6765_defconfig"
-        echo "CONFIG_KPROBES=y" >> $DEFCONFIG_FILE
-        echo "CONFIG_HAVE_KPROBES=y" >> $DEFCONFIG_FILE
-        echo "CONFIG_KPROBE_EVENTS=y" >> $DEFCONFIG_FILE
-        echo "CONFIG_OVERLAY_FS=y" >> $DEFCONFIG_FILE
-        echo "CONFIG_NETFILTER=y" >> $DEFCONFIG_FILE
-
-    - name: Build Kernel
-      run: |
+        # Direct Compilation
         cd kernel-4.9
-        make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- oppo6765_defconfig
-        make -j$(nproc --all) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+        make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- oppo6765_defconfig
+        make -j$(nproc --all) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-android-
 
-    - name: AnyKernel3 Packaging
+    - name: Package AnyKernel3
       run: |
         git clone https://github.com/osm0sis/AnyKernel3.git --depth=1 AnyKernel3
-        if [ -f kernel-4.9/out/arch/arm64/boot/Image.gz-dtb ]; then
-          cp kernel-4.9/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-        elif [ -f kernel-4.9/out/arch/arm64/boot/Image.gz ]; then
-          cp kernel-4.9/out/arch/arm64/boot/Image.gz AnyKernel3/
-        elif [ -f kernel-4.9/out/arch/arm64/boot/Image ]; then
-          cp kernel-4.9/out/arch/arm64/boot/Image AnyKernel3/
-        fi
+        cp kernel-4.9/out/arch/arm64/boot/Image* AnyKernel3/ 2>/dev/null || true
         cd AnyKernel3
-        zip -r9 ../KernelSU_Next_A15s.zip * -x .git* README.md
+        zip -r9 ../KernelSU_Next_OppoA15s.zip * -x .git* README.md
 
-    - name: Upload Kernel Artifact
+    - name: Upload Zip
       uses: actions/upload-artifact@v4
       with:
-        name: KernelSU-Next-Kernel-A15s
-        path: KernelSU_Next_A15s.zip
+        name: Oppo-A15s-KernelSU-Next
+        path: KernelSU_Next_OppoA15s.zip
