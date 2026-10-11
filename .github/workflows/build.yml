@@ -10,10 +10,11 @@ jobs:
       - name: Build Kernel
         uses: dabao1955/kernel_build_action@main
         with:
-          kernel_url: https://github.com/amirfoysal720-dotcom/A15
-          kernel_branch: main
+          kernel-url: https://github.com/amirfoysal720-dotcom/A15
+          kernel-branch: main
+          kernel-dir: kernel-4.9
           config: oppo6765_defconfig
           arch: arm64
-          aarch64_compiler: gcc
+          aarch64-compiler: gcc
           ksu: true
-          ksu_version: main
+          ksu-version: main
