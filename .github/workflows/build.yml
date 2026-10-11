@@ -17,4 +17,4 @@ jobs:
           aarch64-compiler: gcc
           ksu: true
           ksu-version: main
-          extra-make-args: -C kernel-4.9
+          extra-make-args: O=out -C kernel-4.9
